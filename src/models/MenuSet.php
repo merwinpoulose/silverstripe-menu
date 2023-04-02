@@ -10,8 +10,6 @@ use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
 use SilverStripe\Forms\Tab;
 use SilverStripe\Forms\TabSet;
-use SilverStripe\GraphQL\Scaffolding\Interfaces\ScaffoldingProvider;
-use SilverStripe\GraphQL\Scaffolding\Scaffolders\SchemaScaffolder;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
 use SilverStripe\ORM\HasManyList;
@@ -25,13 +23,11 @@ use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
  *
  * @property string $Title
  * @property string $Slug
- * @property bool   $AllowChildren
+ * @property bool $AllowChildren
  * @method HasManyList|MenuLink[] Links()
  * @package silverstripe-menu
  */
-class MenuSet extends DataObject implements
-    PermissionProvider,
-    ScaffoldingProvider
+class MenuSet extends DataObject implements PermissionProvider
 {
     /**
      * Defines the database table name
@@ -180,7 +176,16 @@ class MenuSet extends DataObject implements
         if ($extended !== null) {
             return $extended;
         }
-        return Permission::check($this->PermissionKey(), 'any', $member);
+
+        // Restrict permissions based on saved key
+        if ($this->isInDB()) {
+            return Permission::check($this->PermissionKey(), 'any', $member);
+        }
+
+        // If canEdit() is called on an unsaved singleton, default to any users with CMS access
+        // This allows MenuLink objects to be created via gridfield,
+        // which will call the singleton MenuSet::canEdit()
+        return Permission::check('CMS_ACCESS', 'any', $member);
     }
 
     /**
@@ -265,46 +270,5 @@ class MenuSet extends DataObject implements
         return $this->Links()->filter([
             'ParentID' => 0
         ]);
-    }
-
-    public function provideGraphQLScaffolding(SchemaScaffolder $scaffolder)
-    {
-        $scaffolder->type(MenuSet::class)
-            ->addAllFields()
-            ->nestedQuery('Links')
-            ->setUsePagination(false)
-            ->end()
-            ->operation(SchemaScaffolder::READ)
-            ->setName('readMenuSets')
-            ->setUsePagination(false)
-            ->end()
-            ->operation(SchemaScaffolder::CREATE)
-            ->setName('createMenuSet')
-            ->end()
-            ->operation(SchemaScaffolder::UPDATE)
-            ->setName('updateMenuSet')
-            ->end()
-            ->operation(SchemaScaffolder::DELETE)
-            ->setName('deleteMenuSet')
-            ->end()
-            ->end()
-            ->query('readOneMenuSet', MenuSet::class)
-            ->setUsePagination(false)
-            ->addArgs([
-                'Slug' => 'String!'
-            ])
-            ->setResolver(function ($object, array $args, $context, ResolveInfo $info) {
-                if (!singleton(MenuSet::class)->canView($context['currentUser'])) {
-                    throw new \InvalidArgumentException(sprintf(
-                        '%s view access not permitted',
-                        MenuSet::class
-                    ));
-                }
-                if ($args['Slug']) {
-                    return MenuSet::get()->find('Slug', $args['Slug']);
-                }
-            })
-            ->end();
-        return $scaffolder;
     }
 }
