@@ -20,7 +20,7 @@
   "require": {
     "silverstripe/admin": "^1.0",
     "silverstripe/graphql": "^4.0.0",
-    "symbiote/silverstripe-gridfieldextensions": "^3.1",
+    "symbiote/silverstripe-gridfieldextensions": "^4.0",
     "gorriecoe/silverstripe-link": "^1.1"
   },
   "extra": {
