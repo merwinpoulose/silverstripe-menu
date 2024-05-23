@@ -18,8 +18,8 @@
   ],
   "homepage": "http://github.com/gorriecoe/silverstripe-menu",
   "require": {
-    "silverstripe/admin": "^1.0",
-    "silverstripe/graphql": "^4.0.0",
+    "silverstripe/admin": "^2.0",
+    "silverstripe/graphql": "^5.0",
     "symbiote/silverstripe-gridfieldextensions": "^4.0",
     "gorriecoe/silverstripe-link": "^1.1"
   },
