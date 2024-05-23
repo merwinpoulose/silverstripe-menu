@@ -16,7 +16,7 @@
     "menu",
     "link"
   ],
-  "homepage": "http://github.com/gorriecoe/silverstripe-menu",
+  "homepage": "http://github.com/merwinpoulose/silverstripe-menu",
   "require": {
     "silverstripe/admin": "^2.0",
     "silverstripe/graphql": "^5.0",
